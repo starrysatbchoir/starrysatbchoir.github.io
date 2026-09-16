@@ -4,8 +4,9 @@
       "username": "admin",
       "displayName": "Choir Admin",
       "role": "admin",
-      "salt": "ec99e43f10a96120c06a6e5d62023e9f",
-      "hash": "ea9e5bb8ad7331054c9851ffbac47a172ce13b4d7d34c0d941ac4d5b240c8861"
+      "salt": "27ddd2d5eef4da209984aa7cd340793c",
+      "hash": "eab125e21120d1a3abc1ec5259ad2b2beebcce0131dd8959ac4ca022780de5b7",
+      "email": "starrysatbchoir@gmail.com"
     },
     {
       "username": "shaowei",
