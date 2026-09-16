@@ -39,6 +39,15 @@
       "date": "2026-09-16",
       "body": "oidnfosnfodnofsdf",
       "pinned": true
+    },
+    {
+      "id": "umu4nfwl5",
+      "title": "test for picture",
+      "category": "Rehearsal",
+      "date": "2026-09-16",
+      "body": "this is the first pciture",
+      "pinned": false,
+      "image": "./updates/1789596316675-Image_20260206141954_16_53.jpg"
     }
   ]
 }
