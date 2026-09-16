@@ -88,7 +88,7 @@ button{font-family:var(--font-body); cursor:pointer;}
 </head>
 <body>
 <div id="app"></div>
-<script src="shared.js?v=3"></script>
+<script src="shared.js?v=4"></script>
 <script>
 (function(){
 "use strict";
@@ -108,11 +108,11 @@ var connecting = false;
 var connectError = '';
 
 var currentTab = 'updates';
-var cache = { updates:null, updatesSha:null, users:null, usersSha:null, resources:null, resourcesSha:null };
+var cache = { updates:null, updatesSha:null, users:null, usersSha:null, resources:null, resourcesSha:null, about:null, aboutSha:null };
 var dataLoaded = false;
 var loadError = '';
 
-var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'' };
+var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'', aboutFacts:[], aboutBody:'', aboutNotice:'' };
 
 function render(){
   var app = document.getElementById('app');
@@ -176,8 +176,9 @@ function shell(){
       '<button class="tab'+(currentTab==='updates'?' active':'')+'" data-action="tab" data-tab="updates">Updates</button>'+
       '<button class="tab'+(currentTab==='members'?' active':'')+'" data-action="tab" data-tab="members">Members</button>'+
       '<button class="tab'+(currentTab==='resources'?' active':'')+'" data-action="tab" data-tab="resources">Materials</button>'+
+      '<button class="tab'+(currentTab==='about'?' active':'')+'" data-action="tab" data-tab="about">About</button>'+
     '</div>'+
-    (currentTab==='updates' ? updatesTab() : currentTab==='members' ? membersTab() : resourcesTab())+
+    (currentTab==='updates' ? updatesTab() : currentTab==='members' ? membersTab() : currentTab==='resources' ? resourcesTab() : aboutTab())+
   '</div>';
 }
 
@@ -402,6 +403,55 @@ async function deleteResource(id){
   }catch(e){ alert('Could not delete: '+e.message); }
 }
 
+/* ---------- About tab ---------- */
+function syncAboutDraftFromDom(){
+  var bodyEl = document.getElementById('a-body');
+  if(bodyEl) ui.aboutBody = bodyEl.value;
+  var rows = document.querySelectorAll('.fact-row');
+  var facts = [];
+  rows.forEach(function(row){
+    facts.push({
+      label: row.querySelector('.fact-label').value,
+      value: row.querySelector('.fact-value').value
+    });
+  });
+  ui.aboutFacts = facts;
+}
+
+function aboutTab(){
+  var factRows = (ui.aboutFacts||[]).map(function(f,i){
+    return '<div class="fact-row" style="display:flex; gap:10px; margin-bottom:10px;">'+
+      '<input class="fact-label" value="'+esc(f.label)+'" placeholder="Label (e.g. Ages)" style="flex:1;">'+
+      '<input class="fact-value" value="'+esc(f.value)+'" placeholder="Value" style="flex:2;">'+
+      '<button class="danger" data-action="remove-fact" data-idx="'+i+'" type="button">Remove</button>'+
+    '</div>';
+  }).join('');
+  return ''+
+  '<div class="panel-head"><h3>About the choir</h3></div>'+
+  (ui.aboutNotice?'<p class="notice ok">'+esc(ui.aboutNotice)+'</p>':'')+
+  '<div class="field"><label for="a-body">About text</label><textarea id="a-body" rows="6">'+esc(ui.aboutBody||'')+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists. Shown on the public site under "About the choir".</p></div>'+
+  '<div class="field"><label>Quick facts</label>'+factRows+'<button class="btn secondary small" data-action="add-fact" type="button">+ Add fact</button></div>'+
+  (ui.formError?'<p class="err">'+esc(ui.formError)+'</p>':'')+
+  '<button class="btn" data-action="save-about" '+(ui.busy?'disabled':'')+'>'+(ui.busy?'Saving…':'Save changes')+'</button>';
+}
+
+async function saveAbout(){
+  syncAboutDraftFromDom();
+  var body = ui.aboutBody.trim();
+  var facts = ui.aboutFacts.map(function(f){ return {label:f.label.trim(), value:f.value.trim()}; }).filter(function(f){ return f.label || f.value; });
+  if(!body){ ui.formError='Enter the about text.'; render(); return; }
+  ui.busy=true; ui.formError=''; ui.aboutNotice=''; render();
+  try{
+    var result = await ChoirGitHub.putJson('about.json', {body:body, facts:facts}, cache.aboutSha, 'Update About the choir');
+    cache.about = {body:body, facts:facts};
+    cache.aboutSha = result.content.sha;
+    ui.aboutBody = body;
+    ui.aboutFacts = facts.map(function(f){ return {label:f.label, value:f.value}; });
+    ui.busy=false; ui.aboutNotice='Changes saved.';
+    render();
+  }catch(e){ ui.busy=false; ui.formError=e.message; render(); }
+}
+
 function modalHtml(){
   if(!ui.modal) return '';
   var inner = ui.modal==='update' ? updateModal() : ui.modal==='member' ? memberModal() : ui.modal==='resource' ? resourceModal() : '';
@@ -468,9 +518,13 @@ async function loadAllData(){
     var u = await ChoirGitHub.getFile('updates.json');
     var us = await ChoirGitHub.getFile('users.json');
     var r = await ChoirGitHub.getFile('resources.json');
+    var ab = await ChoirGitHub.getFile('about.json');
     cache.updates = u.json || {updates:[]}; cache.updatesSha = u.sha;
     cache.users = us.json || {users:[]}; cache.usersSha = us.sha;
     cache.resources = r.json || {resources:[]}; cache.resourcesSha = r.sha;
+    cache.about = ab.json || {body:'', facts:[]}; cache.aboutSha = ab.sha;
+    ui.aboutBody = cache.about.body||'';
+    ui.aboutFacts = (cache.about.facts||[]).map(function(f){ return {label:f.label||'', value:f.value||''}; });
     dataLoaded = true;
     render();
   }catch(e){
@@ -504,6 +558,9 @@ document.addEventListener('click', async function(ev){
     else if(action==='edit-resource'){ ui.modal='resource'; ui.editingId=el.getAttribute('data-id'); ui.formError=''; render(); }
     else if(action==='save-resource'){ await saveResource(); }
     else if(action==='delete-resource'){ await deleteResource(el.getAttribute('data-id')); }
+    else if(action==='add-fact'){ syncAboutDraftFromDom(); ui.aboutFacts.push({label:'',value:''}); ui.aboutNotice=''; render(); }
+    else if(action==='remove-fact'){ syncAboutDraftFromDom(); ui.aboutFacts.splice(parseInt(el.getAttribute('data-idx'),10),1); ui.aboutNotice=''; render(); }
+    else if(action==='save-about'){ await saveAbout(); }
     else if(action==='close-modal'){ ui.modal=null; ui.formError=''; render(); }
   }catch(e){
     ui.busy=false;

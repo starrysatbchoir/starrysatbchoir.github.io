@@ -177,6 +177,13 @@ function youtubeEmbedUrl(url){
   var m = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/.exec(String(url));
   return m ? 'https://www.youtube-nocookie.com/embed/'+m[1] : null;
 }
-window.ChoirUtil = { escapeHtml: escapeHtml, nl2br: nl2br, formatDate: formatDate, markdownToHtml: markdownToHtml, youtubeEmbedUrl: youtubeEmbedUrl };
+function linkifyIfEmail(text){
+  var s = String(text==null?'':text);
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim())){
+    return '<a href="mailto:'+escapeHtml(s.trim())+'">'+escapeHtml(s.trim())+'</a>';
+  }
+  return escapeHtml(s);
+}
+window.ChoirUtil = { escapeHtml: escapeHtml, nl2br: nl2br, formatDate: formatDate, markdownToHtml: markdownToHtml, youtubeEmbedUrl: youtubeEmbedUrl, linkifyIfEmail: linkifyIfEmail };
 
 })();
