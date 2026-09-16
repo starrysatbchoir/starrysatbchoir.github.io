@@ -1,9 +1,21 @@
 {
-  "body": "Starry SATB Choir is a community choir open to singers of every background and ability, ages 10 to 70. We rehearse together weekly and perform a mix of choral repertoire across the year, from classical works to contemporary arrangements.\n\nNo audition is required to join a rehearsal. If you can carry a tune and enjoy singing with others, there is a place for you here — whatever your experience level.",
+  "body": "Starry SATB Choir is a diverse, welcoming, and vibrant community mixed choir based in Winnipeg, Manitoba. Our singers come from different age groups, cultural backgrounds, and musical experiences. Under professional musical direction, we bring people together through singing and use music as a way to connect, celebrate, and inspire.\n\nThe name “Starry” reflects our belief that every singer is a unique star. We believe that every voice has value, and when different voices come together, they create something greater—like a sky filled with stars.\n\nStarry SATB Choir is committed to exploring outstanding choral music from around the world, with repertoire spanning classical, contemporary, traditional, and cross-cultural works. We have a particular interest in preserving and sharing Chinese and Asian cultural music while creating opportunities for meaningful artistic exchange with musicians, choirs, and community organizations from diverse cultural backgrounds.\n\nSince its founding, Starry has actively participated in community cultural events and musical performances throughout Winnipeg. Through concerts, cultural celebrations, and collaborations with other ensembles and artists, we strive to create opportunities for people of different ages and cultural backgrounds to experience music together and build meaningful connections.\n\nIn 2026, Starry SATB Choir received a Gold Award at the Winnipeg Music Festival Choral Competition, and continues to expand its artistic development, community engagement, and cross-cultural collaborations.\n\nStarry welcomes anyone who loves to sing and is willing to learn, grow, and share music with others. Regardless of musical background or experience, every voice has a place in our choir.\n\nLet every voice shine. Together, we sing like stars.",
   "facts": [
-    { "label": "Voice parts", "value": "Soprano, alto, tenor, bass" },
-    { "label": "Ages", "value": "10 to 70" },
-    { "label": "Experience", "value": "All levels welcome, no audition" },
-    { "label": "Contact", "value": "starrysatbchoir@gmail.com" }
+    {
+      "label": "Voice parts",
+      "value": "Soprano, alto, tenor, bass"
+    },
+    {
+      "label": "Ages",
+      "value": "10 to 70"
+    },
+    {
+      "label": "Experience",
+      "value": "All levels welcome, with audition"
+    },
+    {
+      "label": "Contact",
+      "value": "starrysatbchoir@gmail.com"
+    }
   ]
 }
