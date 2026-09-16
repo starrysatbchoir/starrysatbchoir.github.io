@@ -26,6 +26,16 @@
       "body": "第一次合唱联系",
       "pinned": false,
       "image": "./updates/1789596835590-Image_20260916171039_68_53.jpg"
+    },
+    {
+      "id": "umu4okunc",
+      "title": "test",
+      "category": "News",
+      "date": "2026-09-16",
+      "body": "test",
+      "pinned": true,
+      "image": null,
+      "video": "https://www.youtube.com/watch?v=B7d01K0SUoY"
     }
   ]
 }
