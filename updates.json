@@ -1,14 +1,6 @@
 {
   "updates": [
     {
-      "id": "seed-rehearsal",
-      "title": "Rehearsal details",
-      "category": "Rehearsal",
-      "date": "2026-09-16",
-      "body": "Add your rehearsal day, time and location from the admin panel, then keep this pinned.",
-      "pinned": true
-    },
-    {
       "id": "seed-concert",
       "title": "Next concert",
       "category": "Concert",
