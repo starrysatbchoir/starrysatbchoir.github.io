@@ -28,6 +28,14 @@
       "role": "member",
       "salt": "c8fa13c5c3bccade7e50dcf4a40d2d24",
       "hash": "2d9b907261286d093a21add6dadcb4159e5f72b7022368fc92a5546e03b16a0a"
+    },
+    {
+      "username": "yunjia",
+      "displayName": "yunjia",
+      "email": "zhongcaoyao9999@hotmail.com",
+      "role": "admin",
+      "salt": "c964bd5ca7be28f0f19607007c4b8a49",
+      "hash": "a487c7cc434bb27d8fdbe537c5c63f2bc2143377dea438beba56af0b1c846d55"
     }
   ]
 }
