@@ -186,7 +186,7 @@ function updatesTab(){
   var list = ((cache.updates && cache.updates.updates) || []).slice().sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
   var items = list.length ? list.map(function(u){
     var thumb = u.image ? '<img src="'+esc(u.image)+'" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:4px; flex-shrink:0;">' : '';
-    return '<div class="list-item">'+thumb+'<div style="flex:1;"><div class="meta">'+esc(u.date)+' &middot; '+esc(u.category)+(u.pinned?' <span class="pill">pinned</span>':'')+'</div><h4>'+esc(u.title)+'</h4>'+ChoirUtil.markdownToHtml(u.body||'')+'</div>'+
+    return '<div class="list-item">'+thumb+'<div style="flex:1;"><div class="meta">'+esc(u.date)+' &middot; '+esc(u.category)+(u.pinned?' <span class="pill">pinned</span>':'')+(u.video?' <span class="pill">video</span>':'')+'</div><h4>'+esc(u.title)+'</h4>'+ChoirUtil.markdownToHtml(u.body||'')+'</div>'+
       '<div class="actions"><button data-action="edit-update" data-id="'+u.id+'">Edit</button><button class="danger" data-action="delete-update" data-id="'+u.id+'">Delete</button></div></div>';
   }).join('') : '<div class="empty">No updates yet.</div>';
   return '<div class="panel-head"><h3>Updates</h3><button class="btn" data-action="add-update">+ Post an update</button></div>'+items;
@@ -204,6 +204,7 @@ function updateModal(){
     '<div class="field"><label for="m-body">Details</label><textarea id="m-body" rows="5">'+esc(editing?editing.body:'')+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists.</p></div>'+
     '<div class="field"><label for="m-image">Photo (optional)</label><input id="m-image" type="file" accept="image/*">'+(editing&&editing.image?'<p class="hint">Current photo: '+esc(editing.image)+'</p>':'')+'</div>'+
     (editing&&editing.image?'<div class="checkrow"><input id="m-remove-image" type="checkbox"><label for="m-remove-image">Remove current photo</label></div>':'')+
+    '<div class="field"><label for="m-video">YouTube video link (optional)</label><input id="m-video" type="url" value="'+esc(editing?(editing.video||''):'')+'" placeholder="https://www.youtube.com/watch?v=..."><p class="hint">Shown in place of the photo when both are set.</p></div>'+
     '<div class="checkrow"><input id="m-pinned" type="checkbox" '+(editing&&editing.pinned?'checked':'')+'><label for="m-pinned">Pin to top</label></div>'+
     (ui.formError?'<p class="err">'+esc(ui.formError)+'</p>':'')+
     '<div class="modal-actions"><button class="btn secondary" data-action="close-modal">Cancel</button><button class="btn" data-action="save-update" '+(ui.busy?'disabled':'')+'>'+(ui.busy?'Saving…':'Save')+'</button></div>'+
@@ -219,7 +220,9 @@ async function saveUpdate(){
   var imageFile = document.getElementById('m-image').files[0];
   var removeImageEl = document.getElementById('m-remove-image');
   var removeImage = removeImageEl ? removeImageEl.checked : false;
+  var video = document.getElementById('m-video').value.trim();
   if(!title || !date || !body){ ui.formError = 'Fill in a title, date and details.'; render(); return; }
+  if(video && !ChoirUtil.youtubeEmbedUrl(video)){ ui.formError = 'Enter a valid YouTube link, or leave it blank.'; render(); return; }
   ui.busy = true; ui.formError=''; render();
   var editing = ui.editingId ? (cache.updates.updates||[]).filter(function(u){return u.id===ui.editingId;})[0] : null;
   var image = editing ? editing.image : null;
@@ -235,9 +238,9 @@ async function saveUpdate(){
     }
     var list = (cache.updates.updates||[]).slice();
     if(ui.editingId){
-      list = list.map(function(u){ return u.id===ui.editingId ? Object.assign({},u,{title:title,category:category,date:date,body:body,pinned:pinned,image:image}) : u; });
+      list = list.map(function(u){ return u.id===ui.editingId ? Object.assign({},u,{title:title,category:category,date:date,body:body,pinned:pinned,image:image,video:video||null}) : u; });
     } else {
-      list.push({ id:'u'+Date.now().toString(36), title:title, category:category, date:date, body:body, pinned:pinned, image:image });
+      list.push({ id:'u'+Date.now().toString(36), title:title, category:category, date:date, body:body, pinned:pinned, image:image, video:video||null });
     }
     var result = await ChoirGitHub.putJson('updates.json', {updates:list}, cache.updatesSha, 'Update choir updates');
     cache.updates = {updates:list};

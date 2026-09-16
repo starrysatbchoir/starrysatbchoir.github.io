@@ -94,6 +94,7 @@ section{padding:88px 0;}
 .update-row.reverse .update-media{order:2;}
 .update-row.reverse .update-text{order:1;}
 .update-media img{width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:6px; display:block;}
+.update-media.video iframe{width:100%; aspect-ratio:16/9; border:0; border-radius:6px; display:block;}
 .update-meta{font-size:13px; color:var(--ink-soft); margin:0 0 10px;}
 .update-text h3{font-size:clamp(22px,2.6vw,28px); margin-bottom:14px;}
 .update-text .md{color:var(--ink-soft); font-size:16px; max-width:52ch;}
@@ -259,10 +260,15 @@ function voices(){
 }
 
 function updateCard(u, reverse){
-  var hasImage = !!u.image;
-  var media = hasImage ? '<div class="update-media"><img src="'+esc(u.image)+'" alt="" loading="lazy"></div>' : '';
+  var embedUrl = ChoirUtil.youtubeEmbedUrl(u.video);
+  var hasVideo = !!embedUrl;
+  var hasImage = !hasVideo && !!u.image;
+  var hasMedia = hasVideo || hasImage;
+  var media = hasVideo
+    ? '<div class="update-media video"><iframe src="'+esc(embedUrl)+'" title="'+esc(u.title)+'" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>'
+    : hasImage ? '<div class="update-media"><img src="'+esc(u.image)+'" alt="" loading="lazy"></div>' : '';
   var pinnedTag = u.pinned ? '<span class="tl-cat pinned">Pinned</span>' : '';
-  return '<div class="update-row'+(reverse?' reverse':'')+(hasImage?'':' no-image')+'">'+
+  return '<div class="update-row'+(reverse?' reverse':'')+(hasMedia?'':' no-image')+'">'+
     media+
     '<div class="update-text">'+
       '<p class="update-meta">'+formatDate(u.date)+'<span class="tl-cat">'+esc(u.category)+'</span>'+pinnedTag+'</p>'+
@@ -280,10 +286,11 @@ function updates(){
   } else if(loadStatus === 'error'){
     body = '<div class="empty-state"><h3>Couldn\'t load updates.json</h3><p>Make sure updates.json is deployed alongside this page.</p></div>';
   } else if(all.length){
-    var imgCount = 0;
+    var mediaCount = 0;
     body = all.map(function(u){
-      var reverse = u.image ? (imgCount % 2 === 0) : false;
-      if(u.image) imgCount++;
+      var hasMedia = !!u.image || !!ChoirUtil.youtubeEmbedUrl(u.video);
+      var reverse = hasMedia ? (mediaCount % 2 === 0) : false;
+      if(hasMedia) mediaCount++;
       return updateCard(u, reverse);
     }).join('');
   } else {

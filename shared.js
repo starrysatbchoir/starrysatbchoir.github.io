@@ -172,6 +172,11 @@ function formatDate(d){
     return dt.toLocaleDateString('en-US',{month:'long', day:'numeric', year:'numeric'});
   }catch(e){ return d; }
 }
-window.ChoirUtil = { escapeHtml: escapeHtml, nl2br: nl2br, formatDate: formatDate, markdownToHtml: markdownToHtml };
+function youtubeEmbedUrl(url){
+  if(!url) return null;
+  var m = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/.exec(String(url));
+  return m ? 'https://www.youtube-nocookie.com/embed/'+m[1] : null;
+}
+window.ChoirUtil = { escapeHtml: escapeHtml, nl2br: nl2br, formatDate: formatDate, markdownToHtml: markdownToHtml, youtubeEmbedUrl: youtubeEmbedUrl };
 
 })();
