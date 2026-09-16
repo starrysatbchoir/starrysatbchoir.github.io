@@ -29,6 +29,14 @@
       "role": "admin",
       "salt": "c964bd5ca7be28f0f19607007c4b8a49",
       "hash": "a487c7cc434bb27d8fdbe537c5c63f2bc2143377dea438beba56af0b1c846d55"
+    },
+    {
+      "username": "dahuzi",
+      "displayName": "dahuzi",
+      "email": "",
+      "role": "admin",
+      "salt": "6f30cbb93944d09c230857eaa26022dc",
+      "hash": "83517bc0bb9dca7008e20210e3c1ded38113ec40033456ac7f2b210131206b74"
     }
   ]
 }
