@@ -96,7 +96,15 @@ section{padding:88px 0;}
 .update-media img{width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:6px; display:block;}
 .update-meta{font-size:13px; color:var(--ink-soft); margin:0 0 10px;}
 .update-text h3{font-size:clamp(22px,2.6vw,28px); margin-bottom:14px;}
-.update-text .body-text{color:var(--ink-soft); font-size:16px; margin:0; max-width:52ch;}
+.update-text .md{color:var(--ink-soft); font-size:16px; max-width:52ch;}
+.update-text .md p{margin:0 0 12px;}
+.update-text .md p:last-child{margin-bottom:0;}
+.update-text .md ul, .update-text .md ol{margin:0 0 12px 20px; padding:0;}
+.update-text .md li{margin-bottom:4px;}
+.update-text .md h1, .update-text .md h2, .update-text .md h3{font-family:var(--font-body); color:var(--ink); margin:10px 0 6px;}
+.update-text .md h1{font-size:19px;} .update-text .md h2{font-size:18px;} .update-text .md h3{font-size:17px;}
+.update-text .md code{background:rgba(30,37,48,0.08); padding:1px 5px; border-radius:3px; font-size:0.92em;}
+.update-text .md a{color:var(--gold-deep); text-decoration:underline; text-underline-offset:2px;}
 .tl-cat{display:inline-block; font-size:11.5px; font-weight:600; color:var(--twilight); border:1px solid var(--twilight); border-radius:12px; padding:1px 10px; margin-left:8px; vertical-align:1px;}
 .tl-cat.pinned{color:var(--gold-deep); border-color:var(--gold-deep);}
 .empty-state{border:1px dashed var(--line); border-radius:2px; padding:38px 30px; text-align:center; color:var(--ink-soft);}
@@ -161,7 +169,7 @@ try{
   if(savedAuth) memberAuth = JSON.parse(savedAuth);
 }catch(e){ memberAuth = null; }
 
-var esc = ChoirUtil.escapeHtml, nl2br = ChoirUtil.nl2br, formatDate = ChoirUtil.formatDate;
+var esc = ChoirUtil.escapeHtml, formatDate = ChoirUtil.formatDate, mdHtml = ChoirUtil.markdownToHtml;
 
 function sortedUpdates(){
   var arr = (state.updates||[]).slice();
@@ -259,7 +267,7 @@ function updateCard(u, reverse){
     '<div class="update-text">'+
       '<p class="update-meta">'+formatDate(u.date)+'<span class="tl-cat">'+esc(u.category)+'</span>'+pinnedTag+'</p>'+
       '<h3>'+esc(u.title)+'</h3>'+
-      '<p class="body-text">'+nl2br(u.body)+'</p>'+
+      mdHtml(u.body)+
     '</div>'+
   '</div>';
 }
