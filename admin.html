@@ -88,7 +88,7 @@ button{font-family:var(--font-body); cursor:pointer;}
 </head>
 <body>
 <div id="app"></div>
-<script src="shared.js"></script>
+<script src="shared.js?v=3"></script>
 <script>
 (function(){
 "use strict";
@@ -479,31 +479,37 @@ async function loadAllData(){
   }
 }
 
-document.addEventListener('click', function(ev){
+document.addEventListener('click', async function(ev){
   var el = ev.target.closest('[data-action]');
   if(!el){
     if(ev.target.classList && ev.target.classList.contains('modal-overlay')){ ui.modal=null; ui.formError=''; render(); }
     return;
   }
   var action = el.getAttribute('data-action');
-  if(action==='login'){ handleLogin(); }
-  else if(action==='logout'){ logout(); }
-  else if(action==='connect-gh'){ connectGithub(); }
-  else if(action==='disconnect-gh'){ disconnectGithub(); }
-  else if(action==='tab'){ currentTab = el.getAttribute('data-tab'); render(); }
-  else if(action==='add-update'){ ui.modal='update'; ui.editingId=null; ui.formError=''; render(); }
-  else if(action==='edit-update'){ ui.modal='update'; ui.editingId=el.getAttribute('data-id'); ui.formError=''; render(); }
-  else if(action==='delete-update'){ deleteUpdate(el.getAttribute('data-id')); }
-  else if(action==='save-update'){ saveUpdate(); }
-  else if(action==='add-member'){ ui.modal='member'; ui.editingId=null; ui.formError=''; render(); }
-  else if(action==='edit-member'){ ui.modal='member'; ui.editingId=el.getAttribute('data-username'); ui.formError=''; render(); }
-  else if(action==='save-member'){ saveMember(); }
-  else if(action==='delete-member'){ deleteMember(el.getAttribute('data-username')); }
-  else if(action==='add-resource'){ ui.modal='resource'; ui.editingId=null; ui.formError=''; render(); }
-  else if(action==='edit-resource'){ ui.modal='resource'; ui.editingId=el.getAttribute('data-id'); ui.formError=''; render(); }
-  else if(action==='save-resource'){ saveResource(); }
-  else if(action==='delete-resource'){ deleteResource(el.getAttribute('data-id')); }
-  else if(action==='close-modal'){ ui.modal=null; ui.formError=''; render(); }
+  try{
+    if(action==='login'){ await handleLogin(); }
+    else if(action==='logout'){ logout(); }
+    else if(action==='connect-gh'){ await connectGithub(); }
+    else if(action==='disconnect-gh'){ disconnectGithub(); }
+    else if(action==='tab'){ currentTab = el.getAttribute('data-tab'); render(); }
+    else if(action==='add-update'){ ui.modal='update'; ui.editingId=null; ui.formError=''; render(); }
+    else if(action==='edit-update'){ ui.modal='update'; ui.editingId=el.getAttribute('data-id'); ui.formError=''; render(); }
+    else if(action==='delete-update'){ await deleteUpdate(el.getAttribute('data-id')); }
+    else if(action==='save-update'){ await saveUpdate(); }
+    else if(action==='add-member'){ ui.modal='member'; ui.editingId=null; ui.formError=''; render(); }
+    else if(action==='edit-member'){ ui.modal='member'; ui.editingId=el.getAttribute('data-username'); ui.formError=''; render(); }
+    else if(action==='save-member'){ await saveMember(); }
+    else if(action==='delete-member'){ await deleteMember(el.getAttribute('data-username')); }
+    else if(action==='add-resource'){ ui.modal='resource'; ui.editingId=null; ui.formError=''; render(); }
+    else if(action==='edit-resource'){ ui.modal='resource'; ui.editingId=el.getAttribute('data-id'); ui.formError=''; render(); }
+    else if(action==='save-resource'){ await saveResource(); }
+    else if(action==='delete-resource'){ await deleteResource(el.getAttribute('data-id')); }
+    else if(action==='close-modal'){ ui.modal=null; ui.formError=''; render(); }
+  }catch(e){
+    ui.busy=false;
+    alert('Something went wrong: '+e.message+'\n\nTry refreshing the page (this can happen right after a site update).');
+    render();
+  }
 });
 document.addEventListener('keydown', function(ev){ if(ev.key==='Escape' && ui.modal){ ui.modal=null; render(); } });
 
