@@ -36,6 +36,16 @@
       "pinned": true,
       "image": null,
       "video": "https://www.youtube.com/watch?v=B7d01K0SUoY"
+    },
+    {
+      "id": "umu4r79xi",
+      "title": "test",
+      "category": "News",
+      "date": "2026-09-16",
+      "body": "test",
+      "pinned": false,
+      "image": "./updates/1789602632731-Image_20260916171039_68_53.jpg",
+      "video": "https://www.youtube.com/watch?v=ZLejoZrAXHw"
     }
   ]
 }
