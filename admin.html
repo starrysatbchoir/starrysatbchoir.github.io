@@ -185,7 +185,8 @@ function shell(){
 function updatesTab(){
   var list = ((cache.updates && cache.updates.updates) || []).slice().sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
   var items = list.length ? list.map(function(u){
-    return '<div class="list-item"><div><div class="meta">'+esc(u.date)+' &middot; '+esc(u.category)+(u.pinned?' <span class="pill">pinned</span>':'')+'</div><h4>'+esc(u.title)+'</h4><p>'+esc(u.body)+'</p></div>'+
+    var thumb = u.image ? '<img src="'+esc(u.image)+'" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:4px; flex-shrink:0;">' : '';
+    return '<div class="list-item">'+thumb+'<div style="flex:1;"><div class="meta">'+esc(u.date)+' &middot; '+esc(u.category)+(u.pinned?' <span class="pill">pinned</span>':'')+'</div><h4>'+esc(u.title)+'</h4><p>'+esc(u.body)+'</p></div>'+
       '<div class="actions"><button data-action="edit-update" data-id="'+u.id+'">Edit</button><button class="danger" data-action="delete-update" data-id="'+u.id+'">Delete</button></div></div>';
   }).join('') : '<div class="empty">No updates yet.</div>';
   return '<div class="panel-head"><h3>Updates</h3><button class="btn" data-action="add-update">+ Post an update</button></div>'+items;
@@ -201,6 +202,8 @@ function updateModal(){
     '<div class="field"><label for="m-cat">Category</label><select id="m-cat">'+catOptions+'</select></div>'+
     '<div class="field"><label for="m-date">Date</label><input id="m-date" type="date" value="'+(editing?editing.date:new Date().toISOString().slice(0,10))+'"></div>'+
     '<div class="field"><label for="m-body">Details</label><textarea id="m-body" rows="5">'+esc(editing?editing.body:'')+'</textarea></div>'+
+    '<div class="field"><label for="m-image">Photo (optional)</label><input id="m-image" type="file" accept="image/*">'+(editing&&editing.image?'<p class="hint">Current photo: '+esc(editing.image)+'</p>':'')+'</div>'+
+    (editing&&editing.image?'<div class="checkrow"><input id="m-remove-image" type="checkbox"><label for="m-remove-image">Remove current photo</label></div>':'')+
     '<div class="checkrow"><input id="m-pinned" type="checkbox" '+(editing&&editing.pinned?'checked':'')+'><label for="m-pinned">Pin to top</label></div>'+
     (ui.formError?'<p class="err">'+esc(ui.formError)+'</p>':'')+
     '<div class="modal-actions"><button class="btn secondary" data-action="close-modal">Cancel</button><button class="btn" data-action="save-update" '+(ui.busy?'disabled':'')+'>'+(ui.busy?'Saving…':'Save')+'</button></div>'+
@@ -213,15 +216,29 @@ async function saveUpdate(){
   var date = document.getElementById('m-date').value;
   var body = document.getElementById('m-body').value.trim();
   var pinned = document.getElementById('m-pinned').checked;
+  var imageFile = document.getElementById('m-image').files[0];
+  var removeImageEl = document.getElementById('m-remove-image');
+  var removeImage = removeImageEl ? removeImageEl.checked : false;
   if(!title || !date || !body){ ui.formError = 'Fill in a title, date and details.'; render(); return; }
   ui.busy = true; ui.formError=''; render();
-  var list = (cache.updates.updates||[]).slice();
-  if(ui.editingId){
-    list = list.map(function(u){ return u.id===ui.editingId ? Object.assign({},u,{title:title,category:category,date:date,body:body,pinned:pinned}) : u; });
-  } else {
-    list.push({ id:'u'+Date.now().toString(36), title:title, category:category, date:date, body:body, pinned:pinned });
-  }
+  var editing = ui.editingId ? (cache.updates.updates||[]).filter(function(u){return u.id===ui.editingId;})[0] : null;
+  var image = editing ? editing.image : null;
   try{
+    if(imageFile){
+      var base64 = await fileToBase64(imageFile);
+      var safeName = imageFile.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      var path = 'updates/'+Date.now()+'-'+safeName;
+      await ChoirGitHub.putBinary(path, base64, null, 'Upload photo for update');
+      image = './'+path;
+    } else if(removeImage){
+      image = null;
+    }
+    var list = (cache.updates.updates||[]).slice();
+    if(ui.editingId){
+      list = list.map(function(u){ return u.id===ui.editingId ? Object.assign({},u,{title:title,category:category,date:date,body:body,pinned:pinned,image:image}) : u; });
+    } else {
+      list.push({ id:'u'+Date.now().toString(36), title:title, category:category, date:date, body:body, pinned:pinned, image:image });
+    }
     var result = await ChoirGitHub.putJson('updates.json', {updates:list}, cache.updatesSha, 'Update choir updates');
     cache.updates = {updates:list};
     cache.updatesSha = result.content.sha;
