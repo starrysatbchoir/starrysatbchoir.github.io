@@ -44,7 +44,7 @@ button{font-family:var(--font-body); cursor:pointer;}
 .field label{display:block; font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;}
 .field input, .field select, .field textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:2px; font-family:var(--font-body); font-size:14.5px; background:#fff; color:var(--ink);}
 .field textarea{resize:vertical;}
-#m-cat::-webkit-calendar-picker-indicator{display:none;}
+#m-cat::-webkit-calendar-picker-indicator{display:none !important;}
 .field .hint{font-size:12.5px; color:var(--ink-soft); margin-top:5px;}
 .err{color:var(--danger); font-size:13.5px; margin:4px 0 12px;}
 .btn{display:inline-block; padding:10px 20px; border-radius:2px; font-size:14px; font-weight:600; border:1px solid var(--navy); background:var(--navy); color:#fff;}
@@ -266,7 +266,7 @@ function updateModal(){
   return ''+
   '<div class="modal-box"><h2>'+(ui.editingId?'Edit update':'Post an update')+'</h2>'+
     '<div class="field"><label for="m-title">Title</label><input id="m-title" value="'+esc(draft.title)+'"></div>'+
-    '<div class="field"><label for="m-cat">Category</label><input id="m-cat" type="text" list="m-cat-list" value="'+esc(draft.category)+'" placeholder="e.g. News"><datalist id="m-cat-list">'+catOptions+'</datalist><p class="hint">Pick a suggestion or type your own category.</p></div>'+
+    '<div class="field"><label for="m-cat">Category</label><input id="m-cat" type="text" list="m-cat-list" value="'+esc(draft.category)+'" placeholder="e.g. News"><datalist id="m-cat-list">'+catOptions+'</datalist><p class="hint">Type your own category.</p></div>'+
     '<div class="field"><label for="m-date">Date</label><input id="m-date" type="date" value="'+esc(draft.date)+'"></div>'+
     '<div class="field"><label for="m-body">Details</label><textarea id="m-body" rows="5">'+esc(draft.body)+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists.</p></div>'+
     '<div class="field"><label>Photos (optional, multiple allowed)</label>'+photoRows+'<input id="m-images-new" type="file" accept="image/*" multiple><p class="hint">Add one or more photos. On the public site, the first photo (or the first video, if set) shows on the card; all photos show in the post\'s detail view.</p></div>'+
