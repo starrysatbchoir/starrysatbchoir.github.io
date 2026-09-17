@@ -303,9 +303,22 @@ function updateImages(u){
   return (u.images && u.images.length) ? u.images : (u.image ? [u.image] : []);
 }
 
+function updateVideos(u){
+  return (u.videos && u.videos.length) ? u.videos : (u.video ? [u.video] : []);
+}
+
+function firstVideoEmbed(u){
+  var vids = updateVideos(u);
+  for(var i=0;i<vids.length;i++){
+    var e = ChoirUtil.youtubeEmbedUrl(vids[i]);
+    if(e) return e;
+  }
+  return null;
+}
+
 function updateCard(u, reverse){
   var images = updateImages(u);
-  var embedUrl = ChoirUtil.youtubeEmbedUrl(u.video);
+  var embedUrl = firstVideoEmbed(u);
   var hasVideo = !!embedUrl;
   var hasImage = !hasVideo && images.length>0;
   var hasMedia = hasVideo || hasImage;
@@ -334,7 +347,7 @@ function updates(){
   } else if(all.length){
     var mediaCount = 0;
     body = all.map(function(u){
-      var hasMedia = updateImages(u).length>0 || !!ChoirUtil.youtubeEmbedUrl(u.video);
+      var hasMedia = updateImages(u).length>0 || !!firstVideoEmbed(u);
       var reverse = hasMedia ? (mediaCount % 2 === 0) : false;
       if(hasMedia) mediaCount++;
       return updateCard(u, reverse);
@@ -354,11 +367,13 @@ function updateDetailModal(){
   var u = (state.updates||[]).filter(function(x){ return x.id===selectedUpdateId; })[0];
   if(!u) return '';
   var images = updateImages(u);
-  var embedUrl = ChoirUtil.youtubeEmbedUrl(u.video);
+  var embedUrls = updateVideos(u).map(function(v){ return ChoirUtil.youtubeEmbedUrl(v); }).filter(function(e){ return e; });
   var pinnedTag = u.pinned ? '<span class="tl-cat pinned">Pinned</span>' : '';
   var mediaHtml = '';
-  if(embedUrl){
-    mediaHtml += '<div class="update-modal-media"><iframe src="'+esc(embedUrl)+'" title="'+esc(u.title)+'" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+  if(embedUrls.length){
+    mediaHtml += embedUrls.map(function(embedUrl){
+      return '<div class="update-modal-media"><iframe src="'+esc(embedUrl)+'" title="'+esc(u.title)+'" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+    }).join('');
   }
   if(images.length){
     mediaHtml += '<div class="update-gallery">'+images.map(function(src){
