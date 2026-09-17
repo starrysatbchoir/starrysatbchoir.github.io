@@ -30,12 +30,14 @@
     {
       "id": "umu4okunc",
       "title": "《山中月》",
-      "category": "Concert",
+      "category": "Song",
       "date": "2026-09-16",
       "body": "词：徐志摩\n曲：张士超",
       "pinned": true,
-      "image": null,
-      "video": "https://youtu.be/U7kaTaZc8zU?si=GDKsDUU5gTubmezV"
+      "images": [],
+      "videos": [
+        "https://youtu.be/U7kaTaZc8zU?si=GDKsDUU5gTubmezV"
+      ]
     }
   ]
 }
