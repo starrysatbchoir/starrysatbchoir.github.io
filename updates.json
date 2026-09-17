@@ -64,6 +64,25 @@
         "./updates/1789607250896-8-1821.JPG"
       ],
       "videos": []
+    },
+    {
+      "id": "umu4u5g6c",
+      "title": "2026 Concert",
+      "category": "Concert",
+      "date": "2026-09-17",
+      "body": "2026 concert",
+      "pinned": false,
+      "images": [
+        "./updates/1789607575387-0-690cf0307fcf77642f13084665c86269.JPG",
+        "./updates/1789607578003-1-1641.JPG",
+        "./updates/1789607579229-2-1665.JPG",
+        "./updates/1789607580301-3-1667.JPG",
+        "./updates/1789607581416-4-1649.JPG",
+        "./updates/1789607582488-5-1663.JPG",
+        "./updates/1789607583465-6-5083d605dc9e25b5bb1f1039977d46ae.JPG",
+        "./updates/1789607586406-7-35053.JPG"
+      ],
+      "videos": []
     }
   ]
 }
