@@ -119,14 +119,7 @@ function isConflictError(e){ return /GitHub API 409/.test(e.message); }
 
 async function describeSaveError(e, path){
   if(!isConflictError(e)) return e.message;
-  try{
-    var fresh = await ChoirGitHub.getFile(path);
-    if(path==='updates.json'){ cache.updatesSha = fresh.sha; }
-    else if(path==='users.json'){ cache.usersSha = fresh.sha; }
-    else if(path==='resources.json'){ cache.resourcesSha = fresh.sha; }
-    else if(path==='about.json'){ cache.aboutSha = fresh.sha; }
-  }catch(e2){}
-  return 'This was changed elsewhere just now (maybe another browser tab). We\'ve refreshed the latest version behind the scenes — try saving again.';
+  return 'This was changed elsewhere just now (maybe another browser tab or device). Please refresh this page and try again.';
 }
 
 function render(){
@@ -213,7 +206,8 @@ function updatesTab(){
     return '<div class="list-item">'+thumb+'<div style="flex:1;"><div class="meta">'+esc(u.date)+' <span class="pill">'+esc(u.category)+'</span>'+(u.pinned?' <span class="pill">pinned</span>':'')+(hasVideo?' <span class="pill">video</span>':'')+'</div><h4>'+esc(u.title)+'</h4>'+ChoirUtil.markdownToHtml(u.body||'')+'</div>'+
       '<div class="actions"><button data-action="edit-update" data-id="'+u.id+'">Edit</button><button class="danger" data-action="delete-update" data-id="'+u.id+'">Delete</button></div></div>';
   }).join('') : '<div class="empty">No updates yet.</div>';
-  return '<div class="panel-head"><h3>Updates</h3><button class="btn" data-action="add-update">+ Post an update</button></div>'+items;
+  return '<div class="panel-head"><h3>Updates</h3><button class="btn" data-action="add-update">+ Post an update</button></div>'+
+    (ui.notice?'<p class="notice ok">'+esc(ui.notice)+'</p>':'')+items;
 }
 
 function openUpdateModal(existing){
@@ -290,7 +284,15 @@ async function saveUpdate(){
   var pinned = draft.pinned;
   var videos = draft.videos.map(function(v){ return v.trim(); }).filter(function(v){ return v; });
   var newFiles = document.getElementById('m-images-new').files;
-  if(!title || !category || !date || !body){ ui.formError = 'Fill in a title, category, date and details.'; render(); return; }
+  var missing = [];
+  if(!title) missing.push('Title');
+  if(!category) missing.push('Category');
+  if(!date) missing.push('Date');
+  if(!body) missing.push('Details');
+  if(missing.length){
+    var missingMsg = missing.join(', ')+' cannot be empty.';
+    ui.formError = missingMsg; render(); alert(missingMsg); return;
+  }
   var badVideo = videos.filter(function(v){ return !ChoirUtil.youtubeEmbedUrl(v); })[0];
   if(badVideo){ ui.formError = '"'+badVideo+'" is not a valid YouTube link. Fix or remove it.'; render(); return; }
   ui.busy = true; ui.formError=''; render();
@@ -353,7 +355,8 @@ function membersTab(){
     return '<div class="list-item"><div><div class="meta">'+esc(u.role)+(u.email?' &middot; '+esc(u.email):'')+'</div><h4>'+esc(u.displayName||u.username)+' <span style="color:var(--ink-soft); font-weight:400;">('+esc(u.username)+')</span></h4></div>'+
       '<div class="actions"><button data-action="edit-member" data-username="'+esc(u.username)+'">Edit</button>'+(u.username===auth.username?'':'<button class="danger" data-action="delete-member" data-username="'+esc(u.username)+'">Remove</button>')+'</div></div>';
   }).join('') : '<div class="empty">No members yet.</div>';
-  return '<div class="panel-head"><h3>Members</h3><button class="btn" data-action="add-member">+ Add member</button></div>'+items;
+  return '<div class="panel-head"><h3>Members</h3><button class="btn" data-action="add-member">+ Add member</button></div>'+
+    (ui.notice?'<p class="notice ok">'+esc(ui.notice)+'</p>':'')+items;
 }
 
 function memberModal(){
@@ -419,7 +422,8 @@ function resourcesTab(){
     return '<div class="list-item"><div><h4>'+esc(r.title)+'</h4>'+ChoirUtil.markdownToHtml(r.description||'')+(r.fileUrl?'<p class="meta">'+esc(r.fileUrl)+'</p>':'')+'</div>'+
       '<div class="actions"><button data-action="edit-resource" data-id="'+r.id+'">Edit</button><button class="danger" data-action="delete-resource" data-id="'+r.id+'">Delete</button></div></div>';
   }).join('') : '<div class="empty">No materials yet.</div>';
-  return '<div class="panel-head"><h3>Member materials</h3><button class="btn" data-action="add-resource">+ Upload material</button></div>'+items;
+  return '<div class="panel-head"><h3>Member materials</h3><button class="btn" data-action="add-resource">+ Upload material</button></div>'+
+    (ui.notice?'<p class="notice ok">'+esc(ui.notice)+'</p>':'')+items;
 }
 
 function resourceModal(){
@@ -517,7 +521,8 @@ function aboutTab(){
   '<div class="field"><label for="a-hero">Homepage banner image (optional)</label><input id="a-hero" type="file" accept="image/*">'+(heroImage?'<p class="hint">Current banner: '+esc(heroImage)+'</p>':'<p class="hint">No custom banner set &mdash; the homepage currently shows the default dark starfield background.</p>')+'</div>'+
   (heroImage?'<div class="checkrow"><input id="a-remove-hero" type="checkbox"><label for="a-remove-hero">Remove current banner (revert to default background)</label></div>':'')+
   (ui.formError?'<p class="err">'+esc(ui.formError)+'</p>':'')+
-  '<button class="btn" data-action="save-about" '+(ui.busy?'disabled':'')+'>'+(ui.busy?'Saving…':'Save changes')+'</button>';
+  '<button class="btn" data-action="save-about" '+(ui.busy?'disabled':'')+'>'+(ui.busy?'Saving…':'Save changes')+'</button>'+
+  (ui.notice?'<p class="notice ok" style="margin-top:16px;">'+esc(ui.notice)+'</p>':'');
 }
 
 async function saveAbout(){
