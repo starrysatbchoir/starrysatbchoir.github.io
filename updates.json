@@ -46,6 +46,19 @@
       "pinned": false,
       "image": "./updates/1789602632731-Image_20260916171039_68_53.jpg",
       "video": "https://www.youtube.com/watch?v=ZLejoZrAXHw"
+    },
+    {
+      "id": "umu4shk18",
+      "title": "test",
+      "category": "News",
+      "date": "2026-09-17",
+      "body": "ddd",
+      "pinned": false,
+      "images": [
+        "./updates/1789604790716-0-Image_20260916171039_68_53.jpg",
+        "./updates/1789604792099-1-Image_20260916171041_69_53.jpg"
+      ],
+      "video": "https://www.youtube.com/watch?v=B7d01K0SUoY"
     }
   ]
 }
