@@ -112,7 +112,8 @@ var cache = { updates:null, updatesSha:null, users:null, usersSha:null, resource
 var dataLoaded = false;
 var loadError = '';
 
-var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'', aboutFacts:[], aboutBody:'', aboutNotice:'', updateDraft:null };
+var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'', aboutFacts:[], aboutBody:'', updateDraft:null, notice:'' };
+var SAVED_NOTICE = 'Saved. 更新需要2-5分钟才能反应在网站上。';
 
 function isConflictError(e){ return /GitHub API 409/.test(e.message); }
 
@@ -186,6 +187,7 @@ function loadingView(){
 function shell(){
   return ''+
   '<div class="wrap">'+
+    (ui.notice?'<p class="notice ok" style="margin-top:20px;">'+esc(ui.notice)+'</p>':'')+
     '<div class="tabs">'+
       '<button class="tab'+(currentTab==='updates'?' active':'')+'" data-action="tab" data-tab="updates">Updates</button>'+
       '<button class="tab'+(currentTab==='members'?' active':'')+'" data-action="tab" data-tab="members">Members</button>'+
@@ -311,7 +313,7 @@ async function saveUpdate(){
     var result = await ChoirGitHub.putJson('updates.json', {updates:list}, cache.updatesSha, 'Update choir updates');
     cache.updates = {updates:list};
     cache.updatesSha = result.content.sha;
-    ui.modal=null; ui.editingId=null; ui.updateDraft=null; ui.busy=false;
+    ui.modal=null; ui.editingId=null; ui.updateDraft=null; ui.busy=false; ui.notice=SAVED_NOTICE;
     render();
   }catch(e){
     ui.busy=false; ui.formError = await describeSaveError(e, 'updates.json');
@@ -338,6 +340,7 @@ async function deleteUpdate(id){
     var result = await ChoirGitHub.putJson('updates.json', {updates:list}, cache.updatesSha, 'Delete update '+id);
     cache.updates = {updates:list};
     cache.updatesSha = result.content.sha;
+    ui.notice=SAVED_NOTICE;
     render();
     if(target) await deleteUpdatePhotos(target);
   }catch(e){ alert('Could not delete: '+(await describeSaveError(e, 'updates.json'))); render(); }
@@ -392,7 +395,7 @@ async function saveMember(){
     var result = await ChoirGitHub.putJson('users.json', {users:list}, cache.usersSha, (editing?'Update member ':'Add member ')+username);
     cache.users = {users:list};
     cache.usersSha = result.content.sha;
-    ui.modal=null; ui.editingId=null; ui.busy=false;
+    ui.modal=null; ui.editingId=null; ui.busy=false; ui.notice=SAVED_NOTICE;
     render();
   }catch(e){ ui.busy=false; ui.formError=await describeSaveError(e, 'users.json'); render(); }
 }
@@ -404,6 +407,7 @@ async function deleteMember(username){
     var result = await ChoirGitHub.putJson('users.json', {users:list}, cache.usersSha, 'Remove member '+username);
     cache.users = {users:list};
     cache.usersSha = result.content.sha;
+    ui.notice=SAVED_NOTICE;
     render();
   }catch(e){ alert('Could not remove: '+(await describeSaveError(e, 'users.json'))); render(); }
 }
@@ -465,7 +469,7 @@ async function saveResource(){
     var result = await ChoirGitHub.putJson('resources.json', {resources:list}, cache.resourcesSha, (editing?'Update resource ':'Add resource ')+title);
     cache.resources = {resources:list};
     cache.resourcesSha = result.content.sha;
-    ui.modal=null; ui.editingId=null; ui.busy=false;
+    ui.modal=null; ui.editingId=null; ui.busy=false; ui.notice=SAVED_NOTICE;
     render();
   }catch(e){ ui.busy=false; ui.formError=await describeSaveError(e, 'resources.json'); render(); }
 }
@@ -477,6 +481,7 @@ async function deleteResource(id){
     var result = await ChoirGitHub.putJson('resources.json', {resources:list}, cache.resourcesSha, 'Delete resource '+id);
     cache.resources = {resources:list};
     cache.resourcesSha = result.content.sha;
+    ui.notice=SAVED_NOTICE;
     render();
   }catch(e){ alert('Could not delete: '+(await describeSaveError(e, 'resources.json'))); render(); }
 }
@@ -507,7 +512,6 @@ function aboutTab(){
   var heroImage = cache.about ? cache.about.heroImage : null;
   return ''+
   '<div class="panel-head"><h3>About the choir</h3></div>'+
-  (ui.aboutNotice?'<p class="notice ok">'+esc(ui.aboutNotice)+'</p>':'')+
   '<div class="field"><label for="a-body">About text</label><textarea id="a-body" rows="6">'+esc(ui.aboutBody||'')+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists. Shown on the public site under "About the choir".</p></div>'+
   '<div class="field"><label>Quick facts</label>'+factRows+'<button class="btn secondary small" data-action="add-fact" type="button">+ Add fact</button></div>'+
   '<div class="field"><label for="a-hero">Homepage banner image (optional)</label><input id="a-hero" type="file" accept="image/*">'+(heroImage?'<p class="hint">Current banner: '+esc(heroImage)+'</p>':'<p class="hint">No custom banner set &mdash; the homepage currently shows the default dark starfield background.</p>')+'</div>'+
@@ -524,7 +528,7 @@ async function saveAbout(){
   var heroFile = document.getElementById('a-hero').files[0];
   var removeHeroEl = document.getElementById('a-remove-hero');
   var removeHero = removeHeroEl ? removeHeroEl.checked : false;
-  ui.busy=true; ui.formError=''; ui.aboutNotice=''; render();
+  ui.busy=true; ui.formError=''; ui.notice=''; render();
   try{
     var heroImage = cache.about ? cache.about.heroImage : null;
     if(heroFile){
@@ -541,7 +545,7 @@ async function saveAbout(){
     cache.aboutSha = result.content.sha;
     ui.aboutBody = body;
     ui.aboutFacts = facts.map(function(f){ return {label:f.label, value:f.value}; });
-    ui.busy=false; ui.aboutNotice='Changes saved.';
+    ui.busy=false; ui.notice=SAVED_NOTICE;
     render();
   }catch(e){ ui.busy=false; ui.formError=await describeSaveError(e, 'about.json'); render(); }
 }
@@ -639,7 +643,7 @@ document.addEventListener('click', async function(ev){
     else if(action==='logout'){ logout(); }
     else if(action==='connect-gh'){ await connectGithub(); }
     else if(action==='disconnect-gh'){ disconnectGithub(); }
-    else if(action==='tab'){ currentTab = el.getAttribute('data-tab'); render(); }
+    else if(action==='tab'){ currentTab = el.getAttribute('data-tab'); ui.notice=''; render(); }
     else if(action==='add-update'){ openUpdateModal(null); }
     else if(action==='edit-update'){ openUpdateModal((cache.updates.updates||[]).filter(function(u){return u.id===el.getAttribute('data-id');})[0]); }
     else if(action==='delete-update'){ await deleteUpdate(el.getAttribute('data-id')); }
@@ -655,8 +659,8 @@ document.addEventListener('click', async function(ev){
     else if(action==='edit-resource'){ ui.modal='resource'; ui.editingId=el.getAttribute('data-id'); ui.formError=''; render(); }
     else if(action==='save-resource'){ await saveResource(); }
     else if(action==='delete-resource'){ await deleteResource(el.getAttribute('data-id')); }
-    else if(action==='add-fact'){ syncAboutDraftFromDom(); ui.aboutFacts.push({label:'',value:''}); ui.aboutNotice=''; render(); }
-    else if(action==='remove-fact'){ syncAboutDraftFromDom(); ui.aboutFacts.splice(parseInt(el.getAttribute('data-idx'),10),1); ui.aboutNotice=''; render(); }
+    else if(action==='add-fact'){ syncAboutDraftFromDom(); ui.aboutFacts.push({label:'',value:''}); ui.notice=''; render(); }
+    else if(action==='remove-fact'){ syncAboutDraftFromDom(); ui.aboutFacts.splice(parseInt(el.getAttribute('data-idx'),10),1); ui.notice=''; render(); }
     else if(action==='save-about'){ await saveAbout(); }
     else if(action==='close-modal'){ ui.modal=null; ui.formError=''; render(); }
   }catch(e){
