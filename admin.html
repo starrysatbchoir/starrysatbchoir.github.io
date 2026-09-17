@@ -88,7 +88,7 @@ button{font-family:var(--font-body); cursor:pointer;}
 </head>
 <body>
 <div id="app"></div>
-<script src="shared.js?v=5"></script>
+<script src="shared.js?v=6"></script>
 <script>
 (function(){
 "use strict";
@@ -317,14 +317,27 @@ async function saveUpdate(){
   }
 }
 
+async function deleteUpdatePhotos(u){
+  var images = (u.images && u.images.length) ? u.images : (u.image ? [u.image] : []);
+  for(var i=0;i<images.length;i++){
+    var path = images[i].replace(/^\.\//,'');
+    try{
+      var f = await ChoirGitHub.getFile(path);
+      if(f.sha) await ChoirGitHub.deleteFile(path, f.sha, 'Remove photo for deleted update');
+    }catch(e){ console.warn('Could not remove photo '+path, e); }
+  }
+}
+
 async function deleteUpdate(id){
-  if(!confirm('Delete this update?')) return;
+  if(!confirm('Delete this update? Its photos will also be removed from the repo.')) return;
+  var target = (cache.updates.updates||[]).filter(function(u){ return u.id===id; })[0];
   var list = (cache.updates.updates||[]).filter(function(u){ return u.id!==id; });
   try{
     var result = await ChoirGitHub.putJson('updates.json', {updates:list}, cache.updatesSha, 'Delete update '+id);
     cache.updates = {updates:list};
     cache.updatesSha = result.content.sha;
     render();
+    if(target) await deleteUpdatePhotos(target);
   }catch(e){ alert('Could not delete: '+(await describeSaveError(e, 'updates.json'))); render(); }
 }
 

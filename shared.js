@@ -70,9 +70,11 @@ async function getFile(path){
     throw new Error('GitHub API ' + res.status + ' on GET ' + path + ': ' + t);
   }
   var data = await res.json();
-  var raw = b64DecodeUnicode(data.content.replace(/\n/g, ''));
-  var parsed = null;
-  try{ parsed = JSON.parse(raw); }catch(e){ parsed = null; }
+  var raw = null, parsed = null;
+  try{
+    raw = b64DecodeUnicode((data.content||'').replace(/\n/g, ''));
+    parsed = JSON.parse(raw);
+  }catch(e){ /* binary or non-JSON content -- sha is still valid */ }
   return { sha: data.sha, raw: raw, json: parsed };
 }
 
