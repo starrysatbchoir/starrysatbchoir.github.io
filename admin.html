@@ -248,7 +248,9 @@ function syncUpdateDraftFromDom(){
 function updateModal(){
   var draft = ui.updateDraft;
   var cats = ['News','Rehearsal','Concert','Announcement'];
-  var catOptions = cats.map(function(c){ return '<option'+(draft.category===c?' selected':'')+'>'+c+'</option>'; }).join('');
+  var usedCats = ((cache.updates && cache.updates.updates)||[]).map(function(u){ return u.category; }).filter(Boolean);
+  var allCats = cats.concat(usedCats.filter(function(c){ return cats.indexOf(c)===-1; }));
+  var catOptions = allCats.map(function(c){ return '<option value="'+esc(c)+'">'; }).join('');
   var photoRows = draft.images.map(function(src,i){
     return '<div class="fact-row" style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">'+
       '<img src="'+esc(src)+'" alt="" style="width:48px; height:48px; object-fit:cover; border-radius:4px; flex-shrink:0;">'+
@@ -265,7 +267,7 @@ function updateModal(){
   return ''+
   '<div class="modal-box"><h2>'+(ui.editingId?'Edit update':'Post an update')+'</h2>'+
     '<div class="field"><label for="m-title">Title</label><input id="m-title" value="'+esc(draft.title)+'"></div>'+
-    '<div class="field"><label for="m-cat">Category</label><select id="m-cat">'+catOptions+'</select></div>'+
+    '<div class="field"><label for="m-cat">Category</label><input id="m-cat" type="text" list="m-cat-list" value="'+esc(draft.category)+'" placeholder="e.g. News"><datalist id="m-cat-list">'+catOptions+'</datalist><p class="hint">Pick a suggestion or type your own category.</p></div>'+
     '<div class="field"><label for="m-date">Date</label><input id="m-date" type="date" value="'+esc(draft.date)+'"></div>'+
     '<div class="field"><label for="m-body">Details</label><textarea id="m-body" rows="5">'+esc(draft.body)+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists.</p></div>'+
     '<div class="field"><label>Photos (optional, multiple allowed)</label>'+photoRows+'<input id="m-images-new" type="file" accept="image/*" multiple><p class="hint">Add one or more photos. On the public site, the first photo (or the first video, if set) shows on the card; all photos show in the post\'s detail view.</p></div>'+
@@ -280,13 +282,13 @@ async function saveUpdate(){
   syncUpdateDraftFromDom();
   var draft = ui.updateDraft;
   var title = draft.title.trim();
-  var category = draft.category;
+  var category = draft.category.trim();
   var date = draft.date;
   var body = draft.body.trim();
   var pinned = draft.pinned;
   var videos = draft.videos.map(function(v){ return v.trim(); }).filter(function(v){ return v; });
   var newFiles = document.getElementById('m-images-new').files;
-  if(!title || !date || !body){ ui.formError = 'Fill in a title, date and details.'; render(); return; }
+  if(!title || !category || !date || !body){ ui.formError = 'Fill in a title, category, date and details.'; render(); return; }
   var badVideo = videos.filter(function(v){ return !ChoirUtil.youtubeEmbedUrl(v); })[0];
   if(badVideo){ ui.formError = '"'+badVideo+'" is not a valid YouTube link. Fix or remove it.'; render(); return; }
   ui.busy = true; ui.formError=''; render();
