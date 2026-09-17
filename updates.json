@@ -17,9 +17,12 @@
       "title": "招新了！！！！！",
       "category": "Announcement",
       "date": "2026-09-16",
-      "body": "找心中",
+      "body": "招新",
       "pinned": true,
-      "image": "./updates/1789596794710-Image_20260916171041_69_53.jpg"
+      "images": [
+        "./updates/1789596794710-Image_20260916171041_69_53.jpg"
+      ],
+      "videos": []
     },
     {
       "id": "umu4okunc",
