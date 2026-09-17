@@ -326,14 +326,18 @@ async function saveUpdate(){
   }
 }
 
+async function deleteRepoFile(path, message){
+  var cleanPath = path.replace(/^\.\//,'');
+  try{
+    var f = await ChoirGitHub.getFile(cleanPath);
+    if(f.sha) await ChoirGitHub.deleteFile(cleanPath, f.sha, message);
+  }catch(e){ console.warn('Could not remove file '+cleanPath, e); }
+}
+
 async function deleteUpdatePhotos(u){
   var images = (u.images && u.images.length) ? u.images : (u.image ? [u.image] : []);
   for(var i=0;i<images.length;i++){
-    var path = images[i].replace(/^\.\//,'');
-    try{
-      var f = await ChoirGitHub.getFile(path);
-      if(f.sha) await ChoirGitHub.deleteFile(path, f.sha, 'Remove photo for deleted update');
-    }catch(e){ console.warn('Could not remove photo '+path, e); }
+    await deleteRepoFile(images[i], 'Remove photo for deleted update');
   }
 }
 
@@ -538,7 +542,8 @@ async function saveAbout(){
   var removeHero = removeHeroEl ? removeHeroEl.checked : false;
   ui.busy=true; ui.formError=''; ui.notice=''; render();
   try{
-    var heroImage = cache.about ? cache.about.heroImage : null;
+    var oldHeroImage = cache.about ? cache.about.heroImage : null;
+    var heroImage = oldHeroImage;
     if(heroFile){
       var base64 = await fileToBase64(heroFile);
       var safeName = heroFile.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
@@ -555,6 +560,9 @@ async function saveAbout(){
     ui.aboutFacts = facts.map(function(f){ return {label:f.label, value:f.value}; });
     ui.busy=false; ui.notice=SAVED_NOTICE;
     render();
+    if(oldHeroImage && oldHeroImage !== heroImage){
+      await deleteRepoFile(oldHeroImage, 'Remove replaced homepage banner image');
+    }
   }catch(e){ ui.busy=false; ui.formError=await describeSaveError(e, 'about.json'); render(); }
 }
 
