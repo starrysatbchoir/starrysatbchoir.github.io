@@ -114,6 +114,20 @@ var loadError = '';
 
 var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'', aboutFacts:[], aboutBody:'', aboutNotice:'', updateDraft:null };
 
+function isConflictError(e){ return /GitHub API 409/.test(e.message); }
+
+async function describeSaveError(e, path){
+  if(!isConflictError(e)) return e.message;
+  try{
+    var fresh = await ChoirGitHub.getFile(path);
+    if(path==='updates.json'){ cache.updatesSha = fresh.sha; }
+    else if(path==='users.json'){ cache.usersSha = fresh.sha; }
+    else if(path==='resources.json'){ cache.resourcesSha = fresh.sha; }
+    else if(path==='about.json'){ cache.aboutSha = fresh.sha; }
+  }catch(e2){}
+  return 'This was changed elsewhere just now (maybe another browser tab). We\'ve refreshed the latest version behind the scenes — try saving again.';
+}
+
 function render(){
   var app = document.getElementById('app');
   if(!auth){ app.innerHTML = loginGate(); return; }
@@ -298,7 +312,7 @@ async function saveUpdate(){
     ui.modal=null; ui.editingId=null; ui.updateDraft=null; ui.busy=false;
     render();
   }catch(e){
-    ui.busy=false; ui.formError = e.message;
+    ui.busy=false; ui.formError = await describeSaveError(e, 'updates.json');
     render();
   }
 }
@@ -311,7 +325,7 @@ async function deleteUpdate(id){
     cache.updates = {updates:list};
     cache.updatesSha = result.content.sha;
     render();
-  }catch(e){ alert('Could not delete: '+e.message); }
+  }catch(e){ alert('Could not delete: '+(await describeSaveError(e, 'updates.json'))); render(); }
 }
 
 /* ---------- Members tab ---------- */
@@ -365,7 +379,7 @@ async function saveMember(){
     cache.usersSha = result.content.sha;
     ui.modal=null; ui.editingId=null; ui.busy=false;
     render();
-  }catch(e){ ui.busy=false; ui.formError=e.message; render(); }
+  }catch(e){ ui.busy=false; ui.formError=await describeSaveError(e, 'users.json'); render(); }
 }
 
 async function deleteMember(username){
@@ -376,7 +390,7 @@ async function deleteMember(username){
     cache.users = {users:list};
     cache.usersSha = result.content.sha;
     render();
-  }catch(e){ alert('Could not remove: '+e.message); }
+  }catch(e){ alert('Could not remove: '+(await describeSaveError(e, 'users.json'))); render(); }
 }
 
 /* ---------- Resources tab ---------- */
@@ -438,7 +452,7 @@ async function saveResource(){
     cache.resourcesSha = result.content.sha;
     ui.modal=null; ui.editingId=null; ui.busy=false;
     render();
-  }catch(e){ ui.busy=false; ui.formError=e.message; render(); }
+  }catch(e){ ui.busy=false; ui.formError=await describeSaveError(e, 'resources.json'); render(); }
 }
 
 async function deleteResource(id){
@@ -449,7 +463,7 @@ async function deleteResource(id){
     cache.resources = {resources:list};
     cache.resourcesSha = result.content.sha;
     render();
-  }catch(e){ alert('Could not delete: '+e.message); }
+  }catch(e){ alert('Could not delete: '+(await describeSaveError(e, 'resources.json'))); render(); }
 }
 
 /* ---------- About tab ---------- */
@@ -514,7 +528,7 @@ async function saveAbout(){
     ui.aboutFacts = facts.map(function(f){ return {label:f.label, value:f.value}; });
     ui.busy=false; ui.aboutNotice='Changes saved.';
     render();
-  }catch(e){ ui.busy=false; ui.formError=e.message; render(); }
+  }catch(e){ ui.busy=false; ui.formError=await describeSaveError(e, 'about.json'); render(); }
 }
 
 function modalHtml(){
