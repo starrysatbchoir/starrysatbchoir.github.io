@@ -475,11 +475,14 @@ function aboutTab(){
       '<button class="danger" data-action="remove-fact" data-idx="'+i+'" type="button">Remove</button>'+
     '</div>';
   }).join('');
+  var heroImage = cache.about ? cache.about.heroImage : null;
   return ''+
   '<div class="panel-head"><h3>About the choir</h3></div>'+
   (ui.aboutNotice?'<p class="notice ok">'+esc(ui.aboutNotice)+'</p>':'')+
   '<div class="field"><label for="a-body">About text</label><textarea id="a-body" rows="6">'+esc(ui.aboutBody||'')+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists. Shown on the public site under "About the choir".</p></div>'+
   '<div class="field"><label>Quick facts</label>'+factRows+'<button class="btn secondary small" data-action="add-fact" type="button">+ Add fact</button></div>'+
+  '<div class="field"><label for="a-hero">Homepage banner image (optional)</label><input id="a-hero" type="file" accept="image/*">'+(heroImage?'<p class="hint">Current banner: '+esc(heroImage)+'</p>':'<p class="hint">No custom banner set &mdash; the homepage currently shows the default dark starfield background.</p>')+'</div>'+
+  (heroImage?'<div class="checkrow"><input id="a-remove-hero" type="checkbox"><label for="a-remove-hero">Remove current banner (revert to default background)</label></div>':'')+
   (ui.formError?'<p class="err">'+esc(ui.formError)+'</p>':'')+
   '<button class="btn" data-action="save-about" '+(ui.busy?'disabled':'')+'>'+(ui.busy?'Saving…':'Save changes')+'</button>';
 }
@@ -489,10 +492,23 @@ async function saveAbout(){
   var body = ui.aboutBody.trim();
   var facts = ui.aboutFacts.map(function(f){ return {label:f.label.trim(), value:f.value.trim()}; }).filter(function(f){ return f.label || f.value; });
   if(!body){ ui.formError='Enter the about text.'; render(); return; }
+  var heroFile = document.getElementById('a-hero').files[0];
+  var removeHeroEl = document.getElementById('a-remove-hero');
+  var removeHero = removeHeroEl ? removeHeroEl.checked : false;
   ui.busy=true; ui.formError=''; ui.aboutNotice=''; render();
   try{
-    var result = await ChoirGitHub.putJson('about.json', {body:body, facts:facts}, cache.aboutSha, 'Update About the choir');
-    cache.about = {body:body, facts:facts};
+    var heroImage = cache.about ? cache.about.heroImage : null;
+    if(heroFile){
+      var base64 = await fileToBase64(heroFile);
+      var safeName = heroFile.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      var path = 'site/'+Date.now()+'-'+safeName;
+      await ChoirGitHub.putBinary(path, base64, null, 'Upload homepage banner image');
+      heroImage = './'+path;
+    } else if(removeHero){
+      heroImage = null;
+    }
+    var result = await ChoirGitHub.putJson('about.json', {body:body, facts:facts, heroImage:heroImage}, cache.aboutSha, 'Update About the choir');
+    cache.about = {body:body, facts:facts, heroImage:heroImage};
     cache.aboutSha = result.content.sha;
     ui.aboutBody = body;
     ui.aboutFacts = facts.map(function(f){ return {label:f.label, value:f.value}; });
