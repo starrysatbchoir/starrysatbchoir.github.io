@@ -341,7 +341,7 @@ function updateCard(u){
   return '<div class="update-card"'+bgStyle+'>'+
     '<div class="update-card-scrim"></div>'+
     '<div class="update-card-content">'+
-      '<p class="card-meta">'+esc(u.category)+pinnedTag+'</p>'+
+      '<p class="card-meta">'+formatDate(u.date)+' &middot; '+esc(u.category)+pinnedTag+'</p>'+
       '<h3>'+esc(u.title)+'</h3>'+
       (snippet?'<p class="card-snippet">'+esc(snippet)+'</p>':'')+
       '<button class="update-card-btn" data-action="view-update" data-id="'+esc(u.id)+'" type="button">More details</button>'+
