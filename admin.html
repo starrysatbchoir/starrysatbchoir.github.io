@@ -111,6 +111,7 @@ var currentTab = 'updates';
 var cache = { updates:null, updatesSha:null, users:null, usersSha:null, resources:null, resourcesSha:null, about:null, aboutSha:null };
 var dataLoaded = false;
 var loadError = '';
+var loadFatal = false;
 
 var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'', aboutFacts:[], aboutBody:'', updateDraft:null, notice:'' };
 var SAVED_NOTICE = 'Saved. 更新需要2-5分钟才能反应在网站上。';
@@ -174,7 +175,8 @@ function githubGate(){
 }
 
 function loadingView(){
-  return '<div class="wrap"><div class="empty" style="margin-top:60px;">'+(loadError ? esc(loadError) : 'Loading your data from GitHub…')+'</div></div>';
+  var retryBtn = loadFatal ? '<div style="margin-top:14px;"><button class="btn secondary small" data-action="retry-load" type="button">Try again</button></div>' : '';
+  return '<div class="wrap"><div class="empty" style="margin-top:60px;">'+(loadError ? esc(loadError) : 'Loading your data from GitHub…')+retryBtn+'</div></div>';
 }
 
 function shell(){
@@ -615,13 +617,24 @@ function disconnectGithub(){
   render();
 }
 
-async function loadAllData(){
-  dataLoaded = false; loadError=''; render();
+var LOAD_TIMEOUT_MS = 15000;
+var MAX_LOAD_RETRIES = 5;
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise(function(_, reject){ setTimeout(function(){ reject(new Error('Timed out waiting for GitHub')); }, ms); })
+  ]);
+}
+
+async function loadAllData(attempt){
+  attempt = attempt || 1;
+  dataLoaded = false; loadError=''; loadFatal=false; render();
   try{
-    var u = await ChoirGitHub.getFile('updates.json');
-    var us = await ChoirGitHub.getFile('users.json');
-    var r = await ChoirGitHub.getFile('resources.json');
-    var ab = await ChoirGitHub.getFile('about.json');
+    var u = await withTimeout(ChoirGitHub.getFile('updates.json'), LOAD_TIMEOUT_MS);
+    var us = await withTimeout(ChoirGitHub.getFile('users.json'), LOAD_TIMEOUT_MS);
+    var r = await withTimeout(ChoirGitHub.getFile('resources.json'), LOAD_TIMEOUT_MS);
+    var ab = await withTimeout(ChoirGitHub.getFile('about.json'), LOAD_TIMEOUT_MS);
     cache.updates = u.json || {updates:[]}; cache.updatesSha = u.sha;
     cache.users = us.json || {users:[]}; cache.usersSha = us.sha;
     cache.resources = r.json || {resources:[]}; cache.resourcesSha = r.sha;
@@ -631,8 +644,16 @@ async function loadAllData(){
     dataLoaded = true;
     render();
   }catch(e){
-    loadError = 'Could not load data: '+e.message;
+    var isAuthError = /GitHub API (401|403)/.test(e.message);
+    if(isAuthError || attempt >= MAX_LOAD_RETRIES){
+      loadError = 'Could not load data: '+e.message+(attempt>1?' (tried '+attempt+' times)':'');
+      loadFatal = true;
+      render();
+      return;
+    }
+    loadError = 'Having trouble reaching GitHub — retrying automatically… (attempt '+attempt+' of '+MAX_LOAD_RETRIES+')';
     render();
+    setTimeout(function(){ loadAllData(attempt+1); }, 2000);
   }
 }
 
@@ -647,6 +668,7 @@ document.addEventListener('click', async function(ev){
     if(action==='login'){ await handleLogin(); }
     else if(action==='logout'){ logout(); }
     else if(action==='connect-gh'){ await connectGithub(); }
+    else if(action==='retry-load'){ await loadAllData(); }
     else if(action==='disconnect-gh'){ disconnectGithub(); }
     else if(action==='tab'){ currentTab = el.getAttribute('data-tab'); ui.notice=''; render(); }
     else if(action==='add-update'){ openUpdateModal(null); }
