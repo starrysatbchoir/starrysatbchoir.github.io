@@ -112,7 +112,7 @@ var cache = { updates:null, updatesSha:null, users:null, usersSha:null, resource
 var dataLoaded = false;
 var loadError = '';
 
-var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'', aboutFacts:[], aboutBody:'', aboutNotice:'' };
+var ui = { modal:null, editingId:null, formError:'', busy:false, uploadPct:'', aboutFacts:[], aboutBody:'', aboutNotice:'', updateDraft:null };
 
 function render(){
   var app = document.getElementById('app');
@@ -183,70 +183,106 @@ function shell(){
 }
 
 /* ---------- Updates tab ---------- */
+function updateThumb(u){
+  var images = (u.images && u.images.length) ? u.images : (u.image ? [u.image] : []);
+  return images.length ? images[0] : null;
+}
+
 function updatesTab(){
   var list = ((cache.updates && cache.updates.updates) || []).slice().sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
   var items = list.length ? list.map(function(u){
-    var thumb = u.image ? '<img src="'+esc(u.image)+'" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:4px; flex-shrink:0;">' : '';
+    var img = updateThumb(u);
+    var thumb = img ? '<img src="'+esc(img)+'" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:4px; flex-shrink:0;">' : '';
     return '<div class="list-item">'+thumb+'<div style="flex:1;"><div class="meta">'+esc(u.date)+' &middot; '+esc(u.category)+(u.pinned?' <span class="pill">pinned</span>':'')+(u.video?' <span class="pill">video</span>':'')+'</div><h4>'+esc(u.title)+'</h4>'+ChoirUtil.markdownToHtml(u.body||'')+'</div>'+
       '<div class="actions"><button data-action="edit-update" data-id="'+u.id+'">Edit</button><button class="danger" data-action="delete-update" data-id="'+u.id+'">Delete</button></div></div>';
   }).join('') : '<div class="empty">No updates yet.</div>';
   return '<div class="panel-head"><h3>Updates</h3><button class="btn" data-action="add-update">+ Post an update</button></div>'+items;
 }
 
+function openUpdateModal(existing){
+  ui.modal='update';
+  ui.editingId = existing ? existing.id : null;
+  ui.formError='';
+  ui.updateDraft = {
+    title: existing ? existing.title : '',
+    category: existing ? existing.category : 'News',
+    date: existing ? existing.date : new Date().toISOString().slice(0,10),
+    body: existing ? existing.body : '',
+    video: existing ? (existing.video||'') : '',
+    pinned: existing ? !!existing.pinned : false,
+    images: existing ? ((existing.images && existing.images.length) ? existing.images.slice() : (existing.image ? [existing.image] : [])) : []
+  };
+  render();
+}
+
+function syncUpdateDraftFromDom(){
+  if(!ui.updateDraft) return;
+  var t=document.getElementById('m-title'); if(t) ui.updateDraft.title=t.value;
+  var c=document.getElementById('m-cat'); if(c) ui.updateDraft.category=c.value;
+  var d=document.getElementById('m-date'); if(d) ui.updateDraft.date=d.value;
+  var b=document.getElementById('m-body'); if(b) ui.updateDraft.body=b.value;
+  var v=document.getElementById('m-video'); if(v) ui.updateDraft.video=v.value;
+  var p=document.getElementById('m-pinned'); if(p) ui.updateDraft.pinned=p.checked;
+}
+
 function updateModal(){
-  var editing = ui.editingId ? (cache.updates.updates||[]).filter(function(u){return u.id===ui.editingId;})[0] : null;
+  var draft = ui.updateDraft;
   var cats = ['News','Rehearsal','Concert','Announcement'];
-  var catOptions = cats.map(function(c){ return '<option'+(editing&&editing.category===c?' selected':'')+'>'+c+'</option>'; }).join('');
+  var catOptions = cats.map(function(c){ return '<option'+(draft.category===c?' selected':'')+'>'+c+'</option>'; }).join('');
+  var photoRows = draft.images.map(function(src,i){
+    return '<div class="fact-row" style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">'+
+      '<img src="'+esc(src)+'" alt="" style="width:48px; height:48px; object-fit:cover; border-radius:4px; flex-shrink:0;">'+
+      '<span style="flex:1; font-size:12.5px; color:var(--ink-soft); word-break:break-all;">'+esc(src)+'</span>'+
+      '<button class="danger" data-action="remove-update-image" data-idx="'+i+'" type="button">Remove</button>'+
+    '</div>';
+  }).join('');
   return ''+
-  '<div class="modal-box"><h2>'+(editing?'Edit update':'Post an update')+'</h2>'+
-    '<div class="field"><label for="m-title">Title</label><input id="m-title" value="'+esc(editing?editing.title:'')+'"></div>'+
+  '<div class="modal-box"><h2>'+(ui.editingId?'Edit update':'Post an update')+'</h2>'+
+    '<div class="field"><label for="m-title">Title</label><input id="m-title" value="'+esc(draft.title)+'"></div>'+
     '<div class="field"><label for="m-cat">Category</label><select id="m-cat">'+catOptions+'</select></div>'+
-    '<div class="field"><label for="m-date">Date</label><input id="m-date" type="date" value="'+(editing?editing.date:new Date().toISOString().slice(0,10))+'"></div>'+
-    '<div class="field"><label for="m-body">Details</label><textarea id="m-body" rows="5">'+esc(editing?editing.body:'')+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists.</p></div>'+
-    '<div class="field"><label for="m-image">Photo (optional)</label><input id="m-image" type="file" accept="image/*">'+(editing&&editing.image?'<p class="hint">Current photo: '+esc(editing.image)+'</p>':'')+'</div>'+
-    (editing&&editing.image?'<div class="checkrow"><input id="m-remove-image" type="checkbox"><label for="m-remove-image">Remove current photo</label></div>':'')+
-    '<div class="field"><label for="m-video">YouTube video link (optional)</label><input id="m-video" type="url" value="'+esc(editing?(editing.video||''):'')+'" placeholder="https://www.youtube.com/watch?v=..."><p class="hint">Shown in place of the photo when both are set.</p></div>'+
-    '<div class="checkrow"><input id="m-pinned" type="checkbox" '+(editing&&editing.pinned?'checked':'')+'><label for="m-pinned">Pin to top</label></div>'+
+    '<div class="field"><label for="m-date">Date</label><input id="m-date" type="date" value="'+esc(draft.date)+'"></div>'+
+    '<div class="field"><label for="m-body">Details</label><textarea id="m-body" rows="5">'+esc(draft.body)+'</textarea><p class="hint">Markdown supported: **bold**, *italic*, `code`, [link](url), lists.</p></div>'+
+    '<div class="field"><label>Photos (optional, multiple allowed)</label>'+photoRows+'<input id="m-images-new" type="file" accept="image/*" multiple><p class="hint">Add one or more photos. On the public site, the first photo (or the video, if set) shows on the card; all photos show in the post\'s detail view.</p></div>'+
+    '<div class="field"><label for="m-video">YouTube video link (optional)</label><input id="m-video" type="url" value="'+esc(draft.video)+'" placeholder="https://www.youtube.com/watch?v=..."><p class="hint">Shown on the card in place of photos when both are set; photos still appear in the detail view.</p></div>'+
+    '<div class="checkrow"><input id="m-pinned" type="checkbox" '+(draft.pinned?'checked':'')+'><label for="m-pinned">Pin to top</label></div>'+
     (ui.formError?'<p class="err">'+esc(ui.formError)+'</p>':'')+
     '<div class="modal-actions"><button class="btn secondary" data-action="close-modal">Cancel</button><button class="btn" data-action="save-update" '+(ui.busy?'disabled':'')+'>'+(ui.busy?'Saving…':'Save')+'</button></div>'+
   '</div>';
 }
 
 async function saveUpdate(){
-  var title = document.getElementById('m-title').value.trim();
-  var category = document.getElementById('m-cat').value;
-  var date = document.getElementById('m-date').value;
-  var body = document.getElementById('m-body').value.trim();
-  var pinned = document.getElementById('m-pinned').checked;
-  var imageFile = document.getElementById('m-image').files[0];
-  var removeImageEl = document.getElementById('m-remove-image');
-  var removeImage = removeImageEl ? removeImageEl.checked : false;
-  var video = document.getElementById('m-video').value.trim();
+  syncUpdateDraftFromDom();
+  var draft = ui.updateDraft;
+  var title = draft.title.trim();
+  var category = draft.category;
+  var date = draft.date;
+  var body = draft.body.trim();
+  var pinned = draft.pinned;
+  var video = draft.video.trim();
+  var newFiles = document.getElementById('m-images-new').files;
   if(!title || !date || !body){ ui.formError = 'Fill in a title, date and details.'; render(); return; }
   if(video && !ChoirUtil.youtubeEmbedUrl(video)){ ui.formError = 'Enter a valid YouTube link, or leave it blank.'; render(); return; }
   ui.busy = true; ui.formError=''; render();
-  var editing = ui.editingId ? (cache.updates.updates||[]).filter(function(u){return u.id===ui.editingId;})[0] : null;
-  var image = editing ? editing.image : null;
   try{
-    if(imageFile){
-      var base64 = await fileToBase64(imageFile);
-      var safeName = imageFile.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
-      var path = 'updates/'+Date.now()+'-'+safeName;
+    var images = draft.images.slice();
+    for(var i=0;i<newFiles.length;i++){
+      var file = newFiles[i];
+      var base64 = await fileToBase64(file);
+      var safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      var path = 'updates/'+Date.now()+'-'+i+'-'+safeName;
       await ChoirGitHub.putBinary(path, base64, null, 'Upload photo for update');
-      image = './'+path;
-    } else if(removeImage){
-      image = null;
+      images.push('./'+path);
     }
     var list = (cache.updates.updates||[]).slice();
     if(ui.editingId){
-      list = list.map(function(u){ return u.id===ui.editingId ? Object.assign({},u,{title:title,category:category,date:date,body:body,pinned:pinned,image:image,video:video||null}) : u; });
+      list = list.map(function(u){ return u.id===ui.editingId ? Object.assign({},u,{title:title,category:category,date:date,body:body,pinned:pinned,images:images,video:video||null,image:undefined}) : u; });
     } else {
-      list.push({ id:'u'+Date.now().toString(36), title:title, category:category, date:date, body:body, pinned:pinned, image:image, video:video||null });
+      list.push({ id:'u'+Date.now().toString(36), title:title, category:category, date:date, body:body, pinned:pinned, images:images, video:video||null });
     }
     var result = await ChoirGitHub.putJson('updates.json', {updates:list}, cache.updatesSha, 'Update choir updates');
     cache.updates = {updates:list};
     cache.updatesSha = result.content.sha;
-    ui.modal=null; ui.editingId=null; ui.busy=false;
+    ui.modal=null; ui.editingId=null; ui.updateDraft=null; ui.busy=false;
     render();
   }catch(e){
     ui.busy=false; ui.formError = e.message;
@@ -546,10 +582,11 @@ document.addEventListener('click', async function(ev){
     else if(action==='connect-gh'){ await connectGithub(); }
     else if(action==='disconnect-gh'){ disconnectGithub(); }
     else if(action==='tab'){ currentTab = el.getAttribute('data-tab'); render(); }
-    else if(action==='add-update'){ ui.modal='update'; ui.editingId=null; ui.formError=''; render(); }
-    else if(action==='edit-update'){ ui.modal='update'; ui.editingId=el.getAttribute('data-id'); ui.formError=''; render(); }
+    else if(action==='add-update'){ openUpdateModal(null); }
+    else if(action==='edit-update'){ openUpdateModal((cache.updates.updates||[]).filter(function(u){return u.id===el.getAttribute('data-id');})[0]); }
     else if(action==='delete-update'){ await deleteUpdate(el.getAttribute('data-id')); }
     else if(action==='save-update'){ await saveUpdate(); }
+    else if(action==='remove-update-image'){ syncUpdateDraftFromDom(); ui.updateDraft.images.splice(parseInt(el.getAttribute('data-idx'),10),1); render(); }
     else if(action==='add-member'){ ui.modal='member'; ui.editingId=null; ui.formError=''; render(); }
     else if(action==='edit-member'){ ui.modal='member'; ui.editingId=el.getAttribute('data-username'); ui.formError=''; render(); }
     else if(action==='save-member'){ await saveMember(); }
