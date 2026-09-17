@@ -208,7 +208,7 @@ function updatesTab(){
     var img = updateThumb(u);
     var thumb = img ? '<img src="'+esc(img)+'" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:4px; flex-shrink:0;">' : '';
     var hasVideo = (u.videos && u.videos.length) || u.video;
-    return '<div class="list-item">'+thumb+'<div style="flex:1;"><div class="meta">'+esc(u.date)+' &middot; '+esc(u.category)+(u.pinned?' <span class="pill">pinned</span>':'')+(hasVideo?' <span class="pill">video</span>':'')+'</div><h4>'+esc(u.title)+'</h4>'+ChoirUtil.markdownToHtml(u.body||'')+'</div>'+
+    return '<div class="list-item">'+thumb+'<div style="flex:1;"><div class="meta">'+esc(u.date)+' <span class="pill">'+esc(u.category)+'</span>'+(u.pinned?' <span class="pill">pinned</span>':'')+(hasVideo?' <span class="pill">video</span>':'')+'</div><h4>'+esc(u.title)+'</h4>'+ChoirUtil.markdownToHtml(u.body||'')+'</div>'+
       '<div class="actions"><button data-action="edit-update" data-id="'+u.id+'">Edit</button><button class="danger" data-action="delete-update" data-id="'+u.id+'">Delete</button></div></div>';
   }).join('') : '<div class="empty">No updates yet.</div>';
   return '<div class="panel-head"><h3>Updates</h3><button class="btn" data-action="add-update">+ Post an update</button></div>'+items;
