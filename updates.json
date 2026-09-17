@@ -42,6 +42,18 @@
       "videos": [
         "https://youtu.be/U7kaTaZc8zU?si=GDKsDUU5gTubmezV"
       ]
+    },
+    {
+      "id": "umu4tva7g",
+      "title": "Gold Award",
+      "category": "News",
+      "date": "2026-09-17",
+      "body": "2025 Winnipeg Music Festival Gold Award",
+      "pinned": false,
+      "images": [
+        "./updates/1789607111739-0-804.JPG"
+      ],
+      "videos": []
     }
   ]
 }
