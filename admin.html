@@ -88,7 +88,7 @@ button{font-family:var(--font-body); cursor:pointer;}
 </head>
 <body>
 <div id="app"></div>
-<script src="shared.js?v=4"></script>
+<script src="shared.js?v=5"></script>
 <script>
 (function(){
 "use strict";
@@ -155,7 +155,7 @@ function githubGate(){
   return ''+
   '<div class="gate"><div class="card">'+
     '<h2>Connect to GitHub</h2>'+
-    '<p class="sub">Changes you make here are saved by committing directly to your GitHub repo. Create a token with Contents read/write access limited to this one repo, and paste it below &mdash; it stays only in this browser tab and is never written to the repo.</p>'+
+    '<p class="sub">Changes you make here are saved by committing directly to your GitHub repo. Create a token with Contents read/write access limited to this one repo, and paste it below &mdash; it&rsquo;s remembered on this browser for next time, stored only on this device, and never written to the repo.</p>'+
     '<div class="field"><label for="g-owner">GitHub username or org</label><input id="g-owner" type="text" value="'+esc(c.owner)+'" placeholder="yourname"></div>'+
     '<div class="field"><label for="g-repo">Repository name</label><input id="g-repo" type="text" value="'+esc(c.repo)+'" placeholder="starry-choir-site"></div>'+
     '<div class="field"><label for="g-branch">Branch</label><input id="g-branch" type="text" value="'+esc(c.branch||'main')+'"></div>'+

@@ -29,16 +29,16 @@ function cfg(){
     owner: localStorage.getItem('choir_gh_owner') || '',
     repo: localStorage.getItem('choir_gh_repo') || '',
     branch: localStorage.getItem('choir_gh_branch') || 'main',
-    token: sessionStorage.getItem('choir_gh_token') || ''
+    token: localStorage.getItem('choir_gh_token') || ''
   };
 }
 function saveCfg(owner, repo, branch, token){
   localStorage.setItem('choir_gh_owner', owner);
   localStorage.setItem('choir_gh_repo', repo);
   localStorage.setItem('choir_gh_branch', branch);
-  if(token) sessionStorage.setItem('choir_gh_token', token);
+  if(token) localStorage.setItem('choir_gh_token', token);
 }
-function clearToken(){ sessionStorage.removeItem('choir_gh_token'); }
+function clearToken(){ localStorage.removeItem('choir_gh_token'); }
 function hasConfig(){
   var c = cfg();
   return !!(c.owner && c.repo && c.branch && c.token);
