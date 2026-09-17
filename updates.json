@@ -62,7 +62,17 @@
       "date": "2026-09-17",
       "body": "Contribution Award",
       "pinned": false,
-      "images": [],
+      "images": [
+        "./updates/1789607239085-0-1890.JPG",
+        "./updates/1789607241705-1-1805.JPG",
+        "./updates/1789607243268-2-1824.JPG",
+        "./updates/1789607244800-3-1801.JPG",
+        "./updates/1789607245927-4-1775.JPG",
+        "./updates/1789607247007-5-1791.JPG",
+        "./updates/1789607248081-6-1803.JPG",
+        "./updates/1789607249414-7-1787.JPG",
+        "./updates/1789607250896-8-1821.JPG"
+      ],
       "videos": []
     }
   ]
