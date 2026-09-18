@@ -38,6 +38,14 @@
       "role": "admin",
       "salt": "9308f007df8e80a0fe8f37c5415455dd",
       "hash": "fc5c206aa1c988e50c5cafb445134962c6045fd9b950cba285fa99c1aa7f7c51"
+    },
+    {
+      "username": "Huahua",
+      "displayName": "Huahua Admin",
+      "email": "",
+      "role": "admin",
+      "salt": "f1eb9c1dee52073fc12ec425c4005331",
+      "hash": "a992d676f5c4d6838debd47cb39d2180b9ddc62693eb39be1c22e49c6e429558"
     }
   ]
 }
