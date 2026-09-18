@@ -32,14 +32,6 @@
       "hash": "a487c7cc434bb27d8fdbe537c5c63f2bc2143377dea438beba56af0b1c846d55"
     },
     {
-      "username": "dahuzi",
-      "displayName": "Dahuzi Admin",
-      "email": "",
-      "role": "admin",
-      "salt": "bf561a41a172baa487e6ff5045d40638",
-      "hash": "82aefda3e997ee6486a2d06468e768c9262b970a47d672e29ebd41ff6acab6c3"
-    },
-    {
       "username": "Linxi",
       "displayName": "Linxi Admin",
       "email": "",
