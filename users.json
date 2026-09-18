@@ -9,14 +9,6 @@
       "email": "starrysatbchoir@gmail.com"
     },
     {
-      "username": "huahua",
-      "displayName": "Huahua Admin",
-      "role": "admin",
-      "salt": "e15748e5d57c2922a657ae082fd523e5",
-      "hash": "8d3704a17e4f3016015d9de6238b2dfba628a50218293599ed94568c31791eb6",
-      "email": ""
-    },
-    {
       "username": "user1",
       "displayName": "user1",
       "role": "member",
