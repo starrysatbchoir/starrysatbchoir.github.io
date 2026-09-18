@@ -33,11 +33,11 @@
     },
     {
       "username": "dahuzi",
-      "displayName": "dahuzi",
+      "displayName": "Dahuzi Admin",
       "email": "",
       "role": "admin",
-      "salt": "6f30cbb93944d09c230857eaa26022dc",
-      "hash": "83517bc0bb9dca7008e20210e3c1ded38113ec40033456ac7f2b210131206b74"
+      "salt": "bf561a41a172baa487e6ff5045d40638",
+      "hash": "82aefda3e997ee6486a2d06468e768c9262b970a47d672e29ebd41ff6acab6c3"
     },
     {
       "username": "Linxi",
