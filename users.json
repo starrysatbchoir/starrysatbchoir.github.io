@@ -46,6 +46,14 @@
       "role": "admin",
       "salt": "f1eb9c1dee52073fc12ec425c4005331",
       "hash": "a992d676f5c4d6838debd47cb39d2180b9ddc62693eb39be1c22e49c6e429558"
+    },
+    {
+      "username": "Sutianhong",
+      "displayName": "Sutianhong Admin",
+      "email": "",
+      "role": "admin",
+      "salt": "bd030857ad04ba53b11397508076c1c1",
+      "hash": "3413fea32a57897651aae86ef478119636684531f00c89634cd95cfa97adb436"
     }
   ]
 }
