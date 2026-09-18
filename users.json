@@ -37,6 +37,14 @@
       "role": "admin",
       "salt": "6f30cbb93944d09c230857eaa26022dc",
       "hash": "83517bc0bb9dca7008e20210e3c1ded38113ec40033456ac7f2b210131206b74"
+    },
+    {
+      "username": "Linxi",
+      "displayName": "Linxi Admin",
+      "email": "",
+      "role": "admin",
+      "salt": "5696ca3ab24f106b2fe2c2430603bb59",
+      "hash": "078157361d5496b21621ccb30d4f531d6e094565a4ddc57a1294bf09d260f44c"
     }
   ]
 }
